@@ -85,6 +85,39 @@ A full-featured, client-side AI chatbot application built with React 19 and Type
 4. **Open your browser**
    Navigate to `http://localhost:5173`
 
+## Deployment to Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone)
+
+### Quick Deploy
+
+1. **Push to GitHub**
+   ```bash
+   git push origin main
+   ```
+
+2. **Import to Vercel**
+   - Go to [vercel.com](https://vercel.com)
+   - Click "New Project"
+   - Import your repository
+   - Vercel will auto-detect Vite settings
+   - Click "Deploy"
+
+3. **Configuration**
+   - Framework Preset: **Vite**
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+   - Node.js Version: **18.x** (auto-detected from `.nvmrc`)
+
+### Performance Optimizations
+
+The app uses lazy loading and code splitting:
+- **Initial bundle**: ~66 KB gzipped (loads instantly)
+- **Chat components**: ~230 KB gzipped (loads when chatting)
+- **Token counter**: ~2.5 MB gzipped (loads when needed)
+
+Heavy dependencies (syntax highlighter, tiktoken) are lazy-loaded only when the user starts chatting, ensuring fast initial page load.
+
 ## Getting Started
 
 ### 1. Create an Account
