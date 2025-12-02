@@ -1,4 +1,4 @@
-import type { Project, Message, AppSettings, ContextFile } from '../types';
+import type { Project, Message, AppSettings, ContextFile, SavedPrompt } from '../types';
 import { DEFAULT_SETTINGS } from '../types';
 
 class StorageService {
@@ -204,6 +204,73 @@ class StorageService {
     if (project) {
       const contextFiles = project.contextFiles.filter(f => f.id !== fileId);
       this.updateProject(projectId, { contextFiles });
+    }
+  }
+
+  // ==================== Saved Prompts ====================
+
+  /**
+   * Get all saved prompts for the current user
+   */
+  getSavedPrompts(): SavedPrompt[] {
+    return this.getData<SavedPrompt[]>(this.getKey('prompts'), []);
+  }
+
+  /**
+   * Save prompts for the current user
+   */
+  saveSavedPrompts(prompts: SavedPrompt[]): void {
+    this.saveData(this.getKey('prompts'), prompts);
+  }
+
+  /**
+   * Add a new saved prompt
+   */
+  addSavedPrompt(name: string, content: string): SavedPrompt {
+    const prompt: SavedPrompt = {
+      id: `prompt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      name,
+      content,
+      createdAt: new Date().toISOString(),
+      usageCount: 0,
+    };
+
+    const prompts = this.getSavedPrompts();
+    prompts.push(prompt);
+    this.saveSavedPrompts(prompts);
+    return prompt;
+  }
+
+  /**
+   * Update a saved prompt
+   */
+  updateSavedPrompt(promptId: string, updates: Partial<SavedPrompt>): void {
+    const prompts = this.getSavedPrompts();
+    const index = prompts.findIndex(p => p.id === promptId);
+    if (index !== -1) {
+      prompts[index] = { ...prompts[index], ...updates };
+      this.saveSavedPrompts(prompts);
+    }
+  }
+
+  /**
+   * Delete a saved prompt
+   */
+  deleteSavedPrompt(promptId: string): void {
+    const prompts = this.getSavedPrompts();
+    const filtered = prompts.filter(p => p.id !== promptId);
+    this.saveSavedPrompts(filtered);
+  }
+
+  /**
+   * Increment usage count for a prompt
+   */
+  incrementPromptUsage(promptId: string): void {
+    const prompts = this.getSavedPrompts();
+    const index = prompts.findIndex(p => p.id === promptId);
+    if (index !== -1) {
+      prompts[index].usageCount++;
+      this.saveSavedPrompts(prompts);
     }
   }
 

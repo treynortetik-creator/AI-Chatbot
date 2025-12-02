@@ -116,33 +116,49 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                       <Info size={16} />
                       <span>Model Information</span>
                     </div>
+                    {selectedModelInfo.description && (
+                      <p className="settings-panel__model-description">
+                        {selectedModelInfo.description}
+                      </p>
+                    )}
                     <div className="settings-panel__model-details">
                       <div className="settings-panel__model-detail">
-                        <span className="settings-panel__model-detail-label">Context Length:</span>
-                        <span className="settings-panel__model-detail-value">
+                        <span>Context Length:</span>
+                        <span>
                           {selectedModelInfo.context_length?.toLocaleString()} tokens
                         </span>
                       </div>
+                      {selectedModelInfo.top_provider?.max_completion_tokens && (
+                        <div className="settings-panel__model-detail">
+                          <span>Max Output:</span>
+                          <span>
+                            {selectedModelInfo.top_provider.max_completion_tokens.toLocaleString()} tokens
+                          </span>
+                        </div>
+                      )}
+                      {selectedModelInfo.architecture?.modality && (
+                        <div className="settings-panel__model-detail">
+                          <span>Modality:</span>
+                          <span className="settings-panel__model-capability">
+                            {selectedModelInfo.architecture.modality}
+                          </span>
+                        </div>
+                      )}
                       {selectedModelInfo.pricing && (
                         <>
                           <div className="settings-panel__model-detail">
-                            <span className="settings-panel__model-detail-label">Prompt Price:</span>
-                            <span className="settings-panel__model-detail-value">
+                            <span>Prompt Price:</span>
+                            <span>
                               ${selectedModelInfo.pricing.prompt}/1M tokens
                             </span>
                           </div>
                           <div className="settings-panel__model-detail">
-                            <span className="settings-panel__model-detail-label">Completion Price:</span>
-                            <span className="settings-panel__model-detail-value">
+                            <span>Completion Price:</span>
+                            <span>
                               ${selectedModelInfo.pricing.completion}/1M tokens
                             </span>
                           </div>
                         </>
-                      )}
-                      {selectedModelInfo.description && (
-                        <p className="settings-panel__model-description">
-                          {selectedModelInfo.description}
-                        </p>
                       )}
                     </div>
                   </div>

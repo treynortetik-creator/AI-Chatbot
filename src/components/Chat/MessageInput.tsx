@@ -1,9 +1,10 @@
 import type { KeyboardEvent } from 'react';
 import React, { useState, useRef } from 'react';
-import { Send, Paperclip, X, StopCircle } from 'lucide-react';
+import { Send, Paperclip, X, StopCircle, BookMarked } from 'lucide-react';
 import type { MessageAttachment } from '../../types';
 import { fileProcessor } from '../../services';
 import { useSettings } from '../../contexts';
+import { PromptLibrary } from '../Prompts';
 import './MessageInput.css';
 
 interface MessageInputProps {
@@ -24,8 +25,20 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const [attachments, setAttachments] = useState<MessageAttachment[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState('');
+  const [showPromptLibrary, setShowPromptLibrary] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleUsePrompt = (promptContent: string) => {
+    setContent(promptContent);
+    // Auto-resize textarea
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 200) + 'px';
+    }
+    // Focus on textarea
+    setTimeout(() => textareaRef.current?.focus(), 100);
+  };
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -109,53 +122,66 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   };
 
   return (
-    <div className="message-input">
-      {attachments.length > 0 && (
-        <div className="message-input__attachments">
-          {attachments.map((attachment) => (
-            <div key={attachment.id} className="message-input__attachment">
-              {attachment.type.startsWith('image/') && attachment.url ? (
-                <img
-                  src={attachment.url}
-                  alt={attachment.name}
-                  className="message-input__attachment-preview"
-                />
-              ) : (
-                <span className="message-input__attachment-name">
-                  {attachment.name}
-                </span>
-              )}
-              <button
-                type="button"
-                className="message-input__attachment-remove"
-                onClick={() => removeAttachment(attachment.id)}
-                aria-label="Remove attachment"
-              >
-                <X size={14} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+    <>
+      <div className="message-input">
+        {attachments.length > 0 && (
+          <div className="message-input__attachments">
+            {attachments.map((attachment) => (
+              <div key={attachment.id} className="message-input__attachment">
+                {attachment.type.startsWith('image/') && attachment.url ? (
+                  <img
+                    src={attachment.url}
+                    alt={attachment.name}
+                    className="message-input__attachment-preview"
+                  />
+                ) : (
+                  <span className="message-input__attachment-name">
+                    {attachment.name}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  className="message-input__attachment-remove"
+                  onClick={() => removeAttachment(attachment.id)}
+                  aria-label="Remove attachment"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
-      {error && <div className="message-input__error">{error}</div>}
+        {error && <div className="message-input__error">{error}</div>}
 
-      <form
-        className={`message-input__form ${isDragging ? 'message-input__form--dragging' : ''}`}
-        onSubmit={handleSubmit}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        <button
-          type="button"
-          className="message-input__attach-button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={disabled}
-          aria-label="Attach file"
+        <form
+          className={`message-input__form ${isDragging ? 'message-input__form--dragging' : ''}`}
+          onSubmit={handleSubmit}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
         >
-          <Paperclip size={20} />
-        </button>
+          <button
+            type="button"
+            className="message-input__attach-button"
+            onClick={() => setShowPromptLibrary(true)}
+            disabled={disabled}
+            aria-label="Open prompt library"
+            title="Prompt Library"
+          >
+            <BookMarked size={20} />
+          </button>
+
+          <button
+            type="button"
+            className="message-input__attach-button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={disabled}
+            aria-label="Attach file"
+            title="Attach File"
+          >
+            <Paperclip size={20} />
+          </button>
 
         <input
           ref={fileInputRef}
@@ -198,5 +224,12 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         )}
       </form>
     </div>
+
+      <PromptLibrary
+        isOpen={showPromptLibrary}
+        onClose={() => setShowPromptLibrary(false)}
+        onUsePrompt={handleUsePrompt}
+      />
+    </>
   );
 };
