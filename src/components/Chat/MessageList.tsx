@@ -5,9 +5,10 @@ import './MessageList.css';
 
 interface MessageListProps {
   messages: MessageType[];
+  onRegenerate: () => void;
 }
 
-export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
+export const MessageList: React.FC<MessageListProps> = ({ messages, onRegenerate }) => {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -26,11 +27,24 @@ export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
     );
   }
 
+  // Find the last assistant message index
+  let lastAssistantIndex = -1;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === 'assistant') {
+      lastAssistantIndex = i;
+      break;
+    }
+  }
+
   return (
     <div className="message-list">
       <div className="message-list__content">
-        {messages.map((message) => (
-          <MessageComponent key={message.id} message={message} />
+        {messages.map((message, index) => (
+          <MessageComponent
+            key={message.id}
+            message={message}
+            onRegenerate={index === lastAssistantIndex ? onRegenerate : undefined}
+          />
         ))}
         <div ref={bottomRef} />
       </div>

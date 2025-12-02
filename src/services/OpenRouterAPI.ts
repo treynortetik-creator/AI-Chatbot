@@ -292,6 +292,34 @@ class OpenRouterAPI {
       return () => {};
     }
   }
+
+  /**
+   * Fetch available models from OpenRouter
+   */
+  async fetchModels(): Promise<{ success: boolean; models?: any[]; error?: string }> {
+    try {
+      const response = await fetch(`${this.BASE_URL}/models`, {
+        method: 'GET',
+        headers: {
+          'HTTP-Referer': window.location.origin,
+          'X-Title': 'AI Chatbot',
+        },
+      });
+
+      if (!response.ok) {
+        return { success: false, error: `Failed to fetch models: ${response.statusText}` };
+      }
+
+      const data = await response.json();
+      return { success: true, models: data.data || [] };
+    } catch (error) {
+      console.error('Error fetching models:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch models',
+      };
+    }
+  }
 }
 
 export const openRouterAPI = new OpenRouterAPI();

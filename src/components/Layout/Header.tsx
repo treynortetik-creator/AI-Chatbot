@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, Settings as SettingsIcon, FileText, MessageSquare } from 'lucide-react';
+import { Menu, Settings as SettingsIcon, FileText, MessageSquare, Trash2 } from 'lucide-react';
 import { useProjects } from '../../contexts';
 import { SettingsPanel } from '../Settings';
 import { ContextFiles } from '../Files';
@@ -10,7 +10,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
-  const { activeProject } = useProjects();
+  const { activeProject, clearMessages } = useProjects();
   const [showSettings, setShowSettings] = useState(false);
   const [showContextFiles, setShowContextFiles] = useState(false);
 
@@ -42,6 +42,21 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
         </div>
 
         <div className="header__actions">
+          {activeProject && (
+            <button
+              className="header__action-button"
+              onClick={() => {
+                if (confirm('Are you sure you want to clear this conversation? This cannot be undone.')) {
+                  clearMessages(activeProject.id);
+                }
+              }}
+              aria-label="Clear conversation"
+              title="Clear Conversation"
+            >
+              <Trash2 size={20} />
+            </button>
+          )}
+
           {activeProject && (
             <button
               className="header__action-button"

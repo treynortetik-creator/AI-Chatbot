@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { User, Bot, AlertCircle, FileText } from 'lucide-react';
+import { User, Bot, AlertCircle, FileText, Copy, Check, RotateCcw } from 'lucide-react';
 import type { Message as MessageType, MessageAttachment } from '../../types';
 import { TypingIndicator } from './TypingIndicator';
 import { format } from 'date-fns';
@@ -11,10 +11,24 @@ import './Message.css';
 
 interface MessageProps {
   message: MessageType;
+  onRegenerate?: () => void;
 }
 
-export const Message: React.FC<MessageProps> = ({ message }) => {
+export const Message: React.FC<MessageProps> = ({ message, onRegenerate }) => {
   const isDark = document.documentElement.classList.contains('dark-mode');
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    if (!message.content) return;
+
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   const renderAttachment = (attachment: MessageAttachment) => {
     if (!attachment) return null;
@@ -43,12 +57,40 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
 
       <div className="message__content-wrapper">
         <div className="message__header">
-          <span className="message__role">
-            {message.role === 'user' ? 'You' : 'Assistant'}
-          </span>
-          <span className="message__timestamp">
-            {format(new Date(message.timestamp), 'h:mm a')}
-          </span>
+          <div className="message__header-left">
+            <span className="message__role">
+              {message.role === 'user' ? 'You' : 'Assistant'}
+            </span>
+            <span className="message__timestamp">
+              {format(new Date(message.timestamp), 'h:mm a')}
+            </span>
+          </div>
+          {message.role === 'assistant' && !message.isStreaming && (
+            <div className="message__actions">
+              {onRegenerate && (
+                <button
+                  className="message__action-button"
+                  onClick={onRegenerate}
+                  aria-label="Regenerate response"
+                  title="Regenerate response"
+                >
+                  <RotateCcw size={14} />
+                  <span>Regenerate</span>
+                </button>
+              )}
+              {message.content && (
+                <button
+                  className="message__action-button"
+                  onClick={handleCopy}
+                  aria-label="Copy message"
+                  title="Copy message"
+                >
+                  {copied ? <Check size={14} /> : <Copy size={14} />}
+                  <span>{copied ? 'Copied!' : 'Copy'}</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {message.attachments && message.attachments.length > 0 && (

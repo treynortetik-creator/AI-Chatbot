@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import type { Project } from '../../types';
+import React, { useState, useEffect } from 'react';
+import type { Project, OpenRouterModel } from '../../types';
 import { useProjects } from '../../contexts';
+import { openRouterAPI } from '../../services';
 import { Modal, Input, Button } from '../Common';
 import './ProjectSettings.css';
 
@@ -8,17 +9,6 @@ interface ProjectSettingsProps {
   project: Project;
   onClose: () => void;
 }
-
-const AVAILABLE_MODELS = [
-  { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet' },
-  { id: 'anthropic/claude-3-opus', name: 'Claude 3 Opus' },
-  { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku' },
-  { id: 'openai/gpt-4-turbo', name: 'GPT-4 Turbo' },
-  { id: 'openai/gpt-4', name: 'GPT-4' },
-  { id: 'openai/gpt-3.5-turbo', name: 'GPT-3.5 Turbo' },
-  { id: 'google/gemini-pro', name: 'Gemini Pro' },
-  { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B' },
-];
 
 export const ProjectSettings: React.FC<ProjectSettingsProps> = ({ project, onClose }) => {
   const { updateProjectSettings } = useProjects();
@@ -29,6 +19,21 @@ export const ProjectSettings: React.FC<ProjectSettingsProps> = ({ project, onClo
   const [maxTokens, setMaxTokens] = useState(
     project.settings.maxTokens?.toString() || '4096'
   );
+  const [models, setModels] = useState<OpenRouterModel[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
+
+  useEffect(() => {
+    fetchModels();
+  }, []);
+
+  const fetchModels = async () => {
+    setLoadingModels(true);
+    const result = await openRouterAPI.fetchModels();
+    if (result.success && result.models) {
+      setModels(result.models);
+    }
+    setLoadingModels(false);
+  };
 
   const handleSave = () => {
     updateProjectSettings(project.id, {
@@ -55,18 +60,24 @@ export const ProjectSettings: React.FC<ProjectSettingsProps> = ({ project, onClo
 
           <div className="project-settings__field">
             <label className="project-settings__label">Model</label>
-            <select
-              className="project-settings__select"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-            >
-              <option value="">Use Default Model</option>
-              {AVAILABLE_MODELS.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
+            {loadingModels ? (
+              <div className="project-settings__model-loading">
+                Loading models...
+              </div>
+            ) : (
+              <select
+                className="project-settings__select"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+              >
+                <option value="">Use Default Model</option>
+                {models.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
 

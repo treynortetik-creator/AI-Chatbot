@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Eye, EyeOff, Info } from 'lucide-react';
 import { useSettings } from '../../contexts';
-import { Modal, Input, Button } from '../Common';
+import { openRouterAPI } from '../../services';
+import type { OpenRouterModel } from '../../types';
+import { Modal, Input, Button, LoadingSpinner } from '../Common';
 import './SettingsPanel.css';
 
 interface SettingsPanelProps {
@@ -9,21 +11,35 @@ interface SettingsPanelProps {
   onClose: () => void;
 }
 
-const AVAILABLE_MODELS = [
-  { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet' },
-  { id: 'anthropic/claude-3-opus', name: 'Claude 3 Opus' },
-  { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku' },
-  { id: 'openai/gpt-4-turbo', name: 'GPT-4 Turbo' },
-  { id: 'openai/gpt-4', name: 'GPT-4' },
-  { id: 'openai/gpt-3.5-turbo', name: 'GPT-3.5 Turbo' },
-  { id: 'google/gemini-pro', name: 'Gemini Pro' },
-  { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B' },
-];
-
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
   const { settings, updateSettings } = useSettings();
   const [showApiKey, setShowApiKey] = useState(false);
   const [localSettings, setLocalSettings] = useState(settings);
+  const [models, setModels] = useState<OpenRouterModel[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
+  const [selectedModelInfo, setSelectedModelInfo] = useState<OpenRouterModel | null>(null);
+
+  // Fetch models when modal opens
+  useEffect(() => {
+    if (isOpen && models.length === 0) {
+      fetchModels();
+    }
+  }, [isOpen]);
+
+  const fetchModels = async () => {
+    setLoadingModels(true);
+    const result = await openRouterAPI.fetchModels();
+    if (result.success && result.models) {
+      setModels(result.models);
+    }
+    setLoadingModels(false);
+  };
+
+  // Get info about currently selected model
+  useEffect(() => {
+    const model = models.find(m => m.id === localSettings.defaultModel);
+    setSelectedModelInfo(model || null);
+  }, [localSettings.defaultModel, models]);
 
   const handleSave = () => {
     updateSettings(localSettings);
@@ -70,20 +86,69 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
           </div>
 
           <div className="settings-panel__field">
-            <label className="settings-panel__label">Default Model</label>
-            <select
-              className="settings-panel__select"
-              value={localSettings.defaultModel}
-              onChange={(e) =>
-                setLocalSettings({ ...localSettings, defaultModel: e.target.value })
-              }
-            >
-              {AVAILABLE_MODELS.map((model) => (
-                <option key={model.id} value={model.id}>
-                  {model.name}
-                </option>
-              ))}
-            </select>
+            <label className="settings-panel__label">
+              Default Model
+              {loadingModels && <span className="settings-panel__loading">(Loading...)</span>}
+            </label>
+            {loadingModels ? (
+              <div className="settings-panel__model-loading">
+                <LoadingSpinner size="small" />
+              </div>
+            ) : (
+              <>
+                <select
+                  className="settings-panel__select"
+                  value={localSettings.defaultModel}
+                  onChange={(e) =>
+                    setLocalSettings({ ...localSettings, defaultModel: e.target.value })
+                  }
+                >
+                  {models.map((model) => (
+                    <option key={model.id} value={model.id}>
+                      {model.name}
+                    </option>
+                  ))}
+                </select>
+
+                {selectedModelInfo && (
+                  <div className="settings-panel__model-info">
+                    <div className="settings-panel__model-info-header">
+                      <Info size={16} />
+                      <span>Model Information</span>
+                    </div>
+                    <div className="settings-panel__model-details">
+                      <div className="settings-panel__model-detail">
+                        <span className="settings-panel__model-detail-label">Context Length:</span>
+                        <span className="settings-panel__model-detail-value">
+                          {selectedModelInfo.context_length?.toLocaleString()} tokens
+                        </span>
+                      </div>
+                      {selectedModelInfo.pricing && (
+                        <>
+                          <div className="settings-panel__model-detail">
+                            <span className="settings-panel__model-detail-label">Prompt Price:</span>
+                            <span className="settings-panel__model-detail-value">
+                              ${selectedModelInfo.pricing.prompt}/1M tokens
+                            </span>
+                          </div>
+                          <div className="settings-panel__model-detail">
+                            <span className="settings-panel__model-detail-label">Completion Price:</span>
+                            <span className="settings-panel__model-detail-value">
+                              ${selectedModelInfo.pricing.completion}/1M tokens
+                            </span>
+                          </div>
+                        </>
+                      )}
+                      {selectedModelInfo.description && (
+                        <p className="settings-panel__model-description">
+                          {selectedModelInfo.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
 

@@ -36,8 +36,13 @@
 
 @media (min-width: 768px) {
   .sidebar {
-    position: relative;
+    /* Keep sidebar visible by default on desktop, but still allow toggle */
     transform: translateX(0);
+  }
+
+  .sidebar:not(.sidebar--open) {
+    /* When hamburger menu is toggled off on desktop, hide it */
+    transform: translateX(-100%);
   }
 }
 

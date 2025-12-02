@@ -176,6 +176,152 @@ export const ChatContainer: React.FC = () => {
     }
   };
 
+  const handleRegenerate = () => {
+    if (!activeProject || isStreaming) return;
+
+    // Find the last user message and last assistant message
+    let lastUserMessage: MessageType | null = null;
+    let lastAssistantIndex = -1;
+
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'assistant' && lastAssistantIndex === -1) {
+        lastAssistantIndex = i;
+      }
+      if (messages[i].role === 'user' && !lastUserMessage) {
+        lastUserMessage = messages[i];
+      }
+      if (lastAssistantIndex !== -1 && lastUserMessage) break;
+    }
+
+    if (!lastUserMessage || lastAssistantIndex === -1) return;
+
+    // Remove the last assistant message
+    const updatedMessages = messages.slice(0, lastAssistantIndex);
+    setMessages(updatedMessages);
+    storageService.saveMessages(activeProject.id, updatedMessages);
+
+    // Re-send the last user message by regenerating response
+    regenerateResponse(updatedMessages);
+  };
+
+  const regenerateResponse = async (currentMessages: MessageType[]) => {
+    if (!activeProject) return;
+
+    // Create assistant message placeholder
+    const assistantMessage: MessageType = {
+      id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date().toISOString(),
+      isStreaming: true,
+    };
+
+    const messagesWithAssistant = [...currentMessages, assistantMessage];
+    setMessages(messagesWithAssistant);
+    setIsStreaming(true);
+
+    if (settings.streamingEnabled) {
+      // Streaming response
+      let streamedContent = '';
+
+      const abort = await openRouterAPI.streamMessage(
+        currentMessages,
+        settings,
+        (chunk) => {
+          streamedContent += chunk;
+          setMessages((prev) => {
+            const updated = [...prev];
+            const lastIndex = updated.length - 1;
+            updated[lastIndex] = {
+              ...updated[lastIndex],
+              content: streamedContent,
+            };
+            return updated;
+          });
+        },
+        () => {
+          // On complete
+          setIsStreaming(false);
+          setAbortStream(null);
+
+          setMessages((prev) => {
+            const updated = [...prev];
+            const lastIndex = updated.length - 1;
+            updated[lastIndex] = {
+              ...updated[lastIndex],
+              isStreaming: false,
+              tokenCount: tokenCounter.countTokens(streamedContent),
+            };
+
+            storageService.saveMessages(activeProject.id, updated);
+            updateProject(activeProject.id, { messageCount: updated.length });
+
+            return updated;
+          });
+        },
+        (error) => {
+          // On error
+          setIsStreaming(false);
+          setAbortStream(null);
+
+          setMessages((prev) => {
+            const updated = [...prev];
+            const lastIndex = updated.length - 1;
+            updated[lastIndex] = {
+              ...updated[lastIndex],
+              isStreaming: false,
+              error,
+            };
+
+            storageService.saveMessages(activeProject.id, updated);
+            return updated;
+          });
+        },
+        activeProject.contextFiles,
+        activeProject.customInstructions,
+        activeProject.settings
+      );
+
+      setAbortStream(() => abort);
+    } else {
+      // Non-streaming response
+      const result = await openRouterAPI.sendMessage(
+        currentMessages,
+        settings,
+        activeProject.contextFiles,
+        activeProject.customInstructions,
+        activeProject.settings
+      );
+
+      setIsStreaming(false);
+
+      setMessages((prev) => {
+        const updated = [...prev];
+        const lastIndex = updated.length - 1;
+
+        if (result.success && result.content) {
+          updated[lastIndex] = {
+            ...updated[lastIndex],
+            content: result.content,
+            isStreaming: false,
+            tokenCount: tokenCounter.countTokens(result.content),
+          };
+        } else {
+          updated[lastIndex] = {
+            ...updated[lastIndex],
+            isStreaming: false,
+            error: result.error || 'Failed to get response',
+          };
+        }
+
+        storageService.saveMessages(activeProject.id, updated);
+        updateProject(activeProject.id, { messageCount: updated.length });
+
+        return updated;
+      });
+    }
+  };
+
   if (!activeProject) {
     return (
       <div className="chat-container chat-container--empty">
@@ -189,7 +335,7 @@ export const ChatContainer: React.FC = () => {
 
   return (
     <div className="chat-container">
-      <MessageList messages={messages} />
+      <MessageList messages={messages} onRegenerate={handleRegenerate} />
       <MessageInput
         onSend={handleSendMessage}
         disabled={isStreaming}

@@ -15,6 +15,7 @@ interface ProjectContextType {
   addContextFile: (projectId: string, file: ContextFile) => void;
   removeContextFile: (projectId: string, fileId: string) => void;
   updateProjectSettings: (projectId: string, settings: Partial<ProjectSettings>) => void;
+  clearMessages: (projectId: string) => void;
   refreshProjects: () => void;
 }
 
@@ -169,6 +170,14 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     }
   };
 
+  const clearMessages = (projectId: string) => {
+    // Clear all messages for the project
+    storageService.saveMessages(projectId, []);
+
+    // Update project message count
+    updateProject(projectId, { messageCount: 0 });
+  };
+
   const value: ProjectContextType = {
     projects,
     activeProject,
@@ -180,6 +189,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     addContextFile,
     removeContextFile,
     updateProjectSettings,
+    clearMessages,
     refreshProjects,
   };
 

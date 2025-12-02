@@ -10,6 +10,17 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  transition: margin-left 0.3s ease;
+}
+
+@media (min-width: 768px) {
+  .app-layout__main {
+    margin-left: 280px;
+  }
+
+  .app-layout__main--sidebar-closed {
+    margin-left: 0;
+  }
 }
 
 .app-layout__content {
