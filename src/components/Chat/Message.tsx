@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { User, Bot, AlertCircle, FileText, Copy, Check, RotateCcw } from 'lucide-react';
+import { User, Bot, AlertCircle, FileText, Copy, Check, RotateCcw, Trash2 } from 'lucide-react';
 import type { Message as MessageType, MessageAttachment } from '../../types';
 import { TypingIndicator } from './TypingIndicator';
 import { format } from 'date-fns';
@@ -12,9 +12,10 @@ import './Message.css';
 interface MessageProps {
   message: MessageType;
   onRegenerate?: () => void;
+  onDelete?: () => void;
 }
 
-export const Message: React.FC<MessageProps> = ({ message, onRegenerate }) => {
+export const Message: React.FC<MessageProps> = ({ message, onRegenerate, onDelete }) => {
   const isDark = document.documentElement.classList.contains('dark-mode');
   const [copied, setCopied] = useState(false);
 
@@ -65,9 +66,9 @@ export const Message: React.FC<MessageProps> = ({ message, onRegenerate }) => {
               {format(new Date(message.timestamp), 'h:mm a')}
             </span>
           </div>
-          {message.role === 'assistant' && !message.isStreaming && (
+          {!message.isStreaming && (
             <div className="message__actions">
-              {onRegenerate && (
+              {message.role === 'assistant' && onRegenerate && (
                 <button
                   className="message__action-button"
                   onClick={onRegenerate}
@@ -78,7 +79,7 @@ export const Message: React.FC<MessageProps> = ({ message, onRegenerate }) => {
                   <span>Regenerate</span>
                 </button>
               )}
-              {message.content && (
+              {message.role === 'assistant' && message.content && (
                 <button
                   className="message__action-button"
                   onClick={handleCopy}
@@ -87,6 +88,17 @@ export const Message: React.FC<MessageProps> = ({ message, onRegenerate }) => {
                 >
                   {copied ? <Check size={14} /> : <Copy size={14} />}
                   <span>{copied ? 'Copied!' : 'Copy'}</span>
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  className="message__action-button message__action-button--danger"
+                  onClick={onDelete}
+                  aria-label="Delete message"
+                  title="Delete message"
+                >
+                  <Trash2 size={14} />
+                  <span>Delete</span>
                 </button>
               )}
             </div>

@@ -322,6 +322,17 @@ export const ChatContainer: React.FC = () => {
     }
   };
 
+  const handleDeleteMessage = (messageId: string) => {
+    if (!activeProject || isStreaming) return;
+
+    if (confirm('Are you sure you want to delete this message?')) {
+      const updatedMessages = messages.filter(m => m.id !== messageId);
+      setMessages(updatedMessages);
+      storageService.saveMessages(activeProject.id, updatedMessages);
+      updateProject(activeProject.id, { messageCount: updatedMessages.length });
+    }
+  };
+
   if (!activeProject) {
     return (
       <div className="chat-container chat-container--empty">
@@ -335,7 +346,11 @@ export const ChatContainer: React.FC = () => {
 
   return (
     <div className="chat-container">
-      <MessageList messages={messages} onRegenerate={handleRegenerate} />
+      <MessageList
+        messages={messages}
+        onRegenerate={handleRegenerate}
+        onDeleteMessage={handleDeleteMessage}
+      />
       <MessageInput
         onSend={handleSendMessage}
         disabled={isStreaming}

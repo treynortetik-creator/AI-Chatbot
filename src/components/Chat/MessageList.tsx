@@ -6,9 +6,10 @@ import './MessageList.css';
 interface MessageListProps {
   messages: MessageType[];
   onRegenerate: () => void;
+  onDeleteMessage: (messageId: string) => void;
 }
 
-export const MessageList: React.FC<MessageListProps> = ({ messages, onRegenerate }) => {
+export const MessageList: React.FC<MessageListProps> = ({ messages, onRegenerate, onDeleteMessage }) => {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -44,6 +45,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, onRegenerate
             key={message.id}
             message={message}
             onRegenerate={index === lastAssistantIndex ? onRegenerate : undefined}
+            onDelete={() => onDeleteMessage(message.id)}
           />
         ))}
         <div ref={bottomRef} />

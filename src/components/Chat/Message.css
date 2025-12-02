@@ -101,6 +101,12 @@
   border-color: var(--text-tertiary);
 }
 
+.message__action-button--danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+
 .message__attachments {
   display: flex;
   flex-wrap: wrap;
