@@ -1,0 +1,27 @@
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--background);
+}
+
+.chat-container--empty {
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-container__empty-state {
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.chat-container__empty-state h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+}
+
+.chat-container__empty-state p {
+  margin: 0;
+  font-size: 1rem;
+}

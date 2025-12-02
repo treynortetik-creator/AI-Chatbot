@@ -1,0 +1,206 @@
+.message {
+  display: flex;
+  gap: 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message__avatar {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-secondary);
+}
+
+.message--user .message__avatar {
+  background: var(--primary-color);
+  color: white;
+}
+
+.message--assistant .message__avatar {
+  background: var(--surface);
+  border: 2px solid var(--border);
+}
+
+.message__content-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.message__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.message__role {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.message__timestamp {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+.message__attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.message__attachment {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.message__attachment--image {
+  padding: 0;
+  overflow: hidden;
+  max-width: 300px;
+}
+
+.message__attachment--image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 0.5rem;
+}
+
+.message__content {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  word-wrap: break-word;
+}
+
+.message__content p {
+  margin: 0 0 1rem 0;
+}
+
+.message__content p:last-child {
+  margin-bottom: 0;
+}
+
+.message__content code {
+  padding: 0.125rem 0.375rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.875rem;
+}
+
+.message__content pre {
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.message__content pre code {
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+}
+
+.message__content ul,
+.message__content ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.message__content li {
+  margin: 0.25rem 0;
+}
+
+.message__content blockquote {
+  margin: 1rem 0;
+  padding-left: 1rem;
+  border-left: 4px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.message__content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.message__content th,
+.message__content td {
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+.message__content th {
+  background: var(--surface);
+  font-weight: 600;
+}
+
+.message__content a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.message__content a:hover {
+  text-decoration: underline;
+}
+
+.message__error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.5rem;
+  color: var(--danger-color);
+  font-size: 0.875rem;
+}
+
+.message__streaming-indicator {
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .message {
+    gap: 0.75rem;
+  }
+
+  .message__avatar {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .message__avatar svg {
+    width: 16px;
+    height: 16px;
+  }
+}
