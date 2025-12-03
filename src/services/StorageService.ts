@@ -150,14 +150,24 @@ class StorageService {
    * Get user settings
    */
   getSettings(): AppSettings {
-    return this.getData<AppSettings>(this.getKey('settings'), DEFAULT_SETTINGS);
+    try {
+      return this.getData<AppSettings>(this.getKey('settings'), DEFAULT_SETTINGS);
+    } catch (error) {
+      // Return default settings if userId is not set or other error occurs
+      console.warn('Could not load user settings, using defaults:', error);
+      return DEFAULT_SETTINGS;
+    }
   }
 
   /**
    * Save user settings
    */
   saveSettings(settings: AppSettings): void {
-    this.saveData(this.getKey('settings'), settings);
+    try {
+      this.saveData(this.getKey('settings'), settings);
+    } catch (error) {
+      console.warn('Could not save user settings:', error);
+    }
   }
 
   /**

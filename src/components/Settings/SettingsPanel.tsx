@@ -19,11 +19,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
   const [loadingModels, setLoadingModels] = useState(false);
   const [selectedModelInfo, setSelectedModelInfo] = useState<OpenRouterModel | null>(null);
 
-  // Fetch models when modal opens
+  // Fetch models when modal opens (only once)
   useEffect(() => {
-    if (isOpen && models.length === 0) {
+    if (isOpen && models.length === 0 && !loadingModels) {
       fetchModels();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const fetchModels = async () => {

@@ -36,7 +36,20 @@ export const AppLayout: React.FC = () => {
         <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
         <main className="app-layout__content">
-          <Suspense fallback={<LoadingSpinner fullScreen message="Loading chat..." />}>
+          <Suspense
+            fallback={
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100%',
+                flexDirection: 'column',
+                gap: '1rem'
+              }}>
+                <LoadingSpinner message="Loading chat..." />
+              </div>
+            }
+          >
             <ChatContainer />
           </Suspense>
         </main>
