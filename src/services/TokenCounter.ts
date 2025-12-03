@@ -1,34 +1,58 @@
-import { Tiktoken, encodingForModel } from 'js-tiktoken';
 import type { Message, ContextFile } from '../types';
+
+type Tiktoken = any;
 
 class TokenCounter {
   private encoder: Tiktoken | null = null;
+  private encoderPromise: Promise<Tiktoken> | null = null;
 
   /**
-   * Initialize the tokenizer
+   * Initialize the tokenizer lazily
    */
-  private getEncoder(): Tiktoken {
-    if (!this.encoder) {
-      // Use cl100k_base encoding (used by GPT-4, GPT-3.5-turbo, and Claude)
-      this.encoder = encodingForModel('gpt-4');
+  private async getEncoder(): Promise<Tiktoken> {
+    if (this.encoder) {
+      return this.encoder;
     }
-    return this.encoder!;
+
+    // If already loading, wait for it
+    if (this.encoderPromise) {
+      return this.encoderPromise;
+    }
+
+    // Lazy load tiktoken only when needed
+    this.encoderPromise = import('js-tiktoken').then((module) => {
+      this.encoder = module.encodingForModel('gpt-4');
+      return this.encoder!;
+    });
+
+    return this.encoderPromise;
   }
 
   /**
-   * Count tokens in a string
+   * Count tokens in a string (fallback to approximation if tiktoken not loaded)
    */
   countTokens(text: string): number {
     if (!text) return 0;
 
+    // Fallback: approximate 4 characters per token
+    // This is fast and doesn't require loading tiktoken
+    return Math.ceil(text.length / 4);
+  }
+
+  /**
+   * Count tokens accurately (async, loads tiktoken if needed)
+   */
+  async countTokensAccurate(text: string): Promise<number> {
+    if (!text) return 0;
+
     try {
-      const encoder = this.getEncoder();
+      const encoder = await this.getEncoder();
       const tokens = encoder.encode(text);
       return tokens.length;
     } catch (error) {
       console.error('Error counting tokens:', error);
-      // Fallback: approximate 4 characters per token
-      return Math.ceil(text.length / 4);
+      // Fallback to approximation
+      return this.countTokens(text);
     }
   }
 
@@ -133,9 +157,8 @@ class TokenCounter {
    * Free the encoder resources
    */
   dispose(): void {
-    // Note: Tiktoken in js-tiktoken doesn't have a free() method
-    // The encoder will be garbage collected when no longer in use
     this.encoder = null;
+    this.encoderPromise = null;
   }
 }
 
