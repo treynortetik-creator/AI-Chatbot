@@ -18,6 +18,8 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ language, code, isDark }) 
     ]).then(([highlighterModule, stylesModule]) => {
       setHighlighter(() => highlighterModule.Prism);
       setStyle(isDark ? stylesModule.vscDarkPlus : stylesModule.vs);
+    }).catch((error) => {
+      console.error('Failed to load syntax highlighter:', error);
     });
   }, [isDark]);
 
