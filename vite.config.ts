@@ -10,9 +10,9 @@ export default defineConfig({
         manualChunks: {
           'react-vendor': ['react', 'react-dom'],
           'markdown': ['react-markdown', 'remark-gfm'],
-          'syntax-highlighter': ['react-syntax-highlighter'],
           'utils': ['date-fns', 'framer-motion', 'lucide-react'],
-          // Note: tiktoken is now dynamically imported, so it will be a separate lazy chunk automatically
+          // Note: syntax-highlighter and tiktoken are now dynamically imported
+          // They will be separate lazy chunks that only load when needed
         },
       },
     },
