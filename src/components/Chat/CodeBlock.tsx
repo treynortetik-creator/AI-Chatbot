@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Copy, Check } from 'lucide-react';
+import './CodeBlock.css';
 
 interface CodeBlockProps {
   language: string;
@@ -9,6 +11,7 @@ interface CodeBlockProps {
 export const CodeBlock: React.FC<CodeBlockProps> = ({ language, code, isDark }) => {
   const [Highlighter, setHighlighter] = useState<any>(null);
   const [style, setStyle] = useState<any>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     // Lazy load syntax highlighter only when needed
@@ -23,27 +26,68 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ language, code, isDark }) 
     });
   }, [isDark]);
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy code:', err);
+    }
+  };
+
+  const displayLanguage = language.charAt(0).toUpperCase() + language.slice(1);
+
   if (!Highlighter || !style) {
     // Fallback while loading
     return (
-      <pre style={{
-        padding: '1rem',
-        background: isDark ? '#1e1e1e' : '#f6f6f6',
-        borderRadius: '0.5rem',
-        overflow: 'auto',
-      }}>
-        <code>{code}</code>
-      </pre>
+      <div className="code-block">
+        <div className="code-block__header">
+          <span className="code-block__language">{displayLanguage}</span>
+          <button
+            className="code-block__copy-button"
+            onClick={handleCopy}
+            aria-label="Copy code"
+            title="Copy code"
+          >
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+            <span>{copied ? 'Copied!' : 'Copy'}</span>
+          </button>
+        </div>
+        <pre className="code-block__fallback" style={{
+          background: isDark ? '#1e1e1e' : '#f6f6f6',
+        }}>
+          <code>{code}</code>
+        </pre>
+      </div>
     );
   }
 
   return (
-    <Highlighter
-      style={style}
-      language={language}
-      PreTag="div"
-    >
-      {code}
-    </Highlighter>
+    <div className="code-block">
+      <div className="code-block__header">
+        <span className="code-block__language">{displayLanguage}</span>
+        <button
+          className="code-block__copy-button"
+          onClick={handleCopy}
+          aria-label="Copy code"
+          title="Copy code"
+        >
+          {copied ? <Check size={14} /> : <Copy size={14} />}
+          <span>{copied ? 'Copied!' : 'Copy'}</span>
+        </button>
+      </div>
+      <Highlighter
+        style={style}
+        language={language}
+        PreTag="div"
+        customStyle={{
+          margin: 0,
+          borderRadius: '0 0 0.5rem 0.5rem',
+        }}
+      >
+        {code}
+      </Highlighter>
+    </div>
   );
 };
